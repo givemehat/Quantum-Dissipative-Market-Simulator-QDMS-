@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  fastapi_bridge:
+    build: 
+      context: .
+      dockerfile: classical_bridge/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - WORKER_URL=http://processing_worker:8001
+    depends_on:
+      - processing_worker
+
+  processing_worker:
+    build:
+      context: .
+      dockerfile: classical_bridge/Dockerfile.worker
+    ports:
+      - "8001:8001"
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
