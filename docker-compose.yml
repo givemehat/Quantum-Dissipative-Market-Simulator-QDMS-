@@ -21,7 +21,7 @@ services:
 
   dashboard:
     build:
-      context: ./dashboard
+      context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
