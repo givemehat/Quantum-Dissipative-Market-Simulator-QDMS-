@@ -27,4 +27,4 @@ COPY . .
 EXPOSE 8001
 
 # Assuming worker process execution engine command setup
-CMD ["python", "classical_bridge/worker.py"]
+CMD ["uvicorn", "classical_bridge.processing_worker:app", "--host", "0.0.0.0", "--port", "8001"]
