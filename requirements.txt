@@ -1,10 +1,16 @@
-qutip>=4.7.0
-numpy>=1.24.0
-scipy>=1.10.0
-fastapi>=0.100.0
-uvicorn>=0.23.0
-pydantic>=2.0.0
-xgboost>=2.0.0
-pandas>=2.0.0
-scikit-learn>=1.3.0
-requests>=2.31.0
+# Core Quantum Mathematics Engines
+qiskit==0.45.3
+qutip==5.0.1
+numpy==1.24.3
+scipy==1.10.1
+
+# Machine Learning & Analytics Frameworks
+xgboost==2.0.3
+pandas==2.0.3
+scikit-learn==1.3.2
+
+# Classical Data Bridge API Infrastructure 
+fastapi==0.110.0
+uvicorn==0.28.0
+pydantic==2.6.4
+requests==2.31.0
