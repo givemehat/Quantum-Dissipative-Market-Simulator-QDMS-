@@ -226,3 +226,8 @@ def hybrid_ml_predict(
         if prediction == 1
         else "Stable Bull Market"
     )
+
+
+@app.get("/status")
+def get_status():
+    return {"status": "alive"}
