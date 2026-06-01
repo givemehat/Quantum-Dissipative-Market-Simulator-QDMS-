@@ -122,13 +122,14 @@ async def run_simulation(
 
             response.raise_for_status()
 
-            worker_result = response.json()
+# 🛡️ Safeguard: Safely extract parsed JSON from the worker
+        worker_result = response.json()
 
-            return {
-                "status": "Simulation completed",
-                "config": config.model_dump(),
-                "result": worker_result
-            }
+        return {
+            "status": "Simulation completed",
+            "config": config.model_dump(),
+            "result": worker_result
+        }
 
     except httpx.HTTPStatusError as error:
         raise HTTPException(

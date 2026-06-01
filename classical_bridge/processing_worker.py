@@ -1,10 +1,12 @@
 import os
 import sys
+import json
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 # Enable q_engine imports
@@ -32,6 +34,26 @@ from q_engine.Lindblad_solver import (
 app = FastAPI(
     title="QDMS Processing Worker"
 )
+
+# =========================================================
+# 🚀 CUSTOM ENCODER FIX FOR QUANTUM COMPLEX NUMBERS
+# =========================================================
+class QuantumDataEncoder(json.JSONEncoder):
+    """
+    Custom JSON Encoder to safely intercept and decompose complex algebraic structures
+    (complex128, native complex) into standard JSON-compliant formats.
+    """
+    def default(self, obj):
+        if isinstance(obj, (complex, np.complex128, np.complex64)):
+            return {
+                "real": float(obj.real),
+                "imag": float(obj.imag),
+                "magnitude": float(abs(obj))
+            }
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
 
 # =========================================================
 # Request Model
@@ -138,11 +160,15 @@ def run_simulation_task(
         ohlcv_data
     )
 
-    return {
+    # 🛡️ SAFEGUARD IMPLEMENTATION: Render data through our custom encoder 
+    response_payload = {
         "status": "completed",
         "regime_prediction": regime,
         "ohlcv_data": ohlcv_data,
     }
+    
+    encoded_json_string = json.dumps(response_payload, cls=QuantumDataEncoder)
+    return JSONResponse(content=json.loads(encoded_json_string))
 
 
 # =========================================================
@@ -165,6 +191,9 @@ def process_quantum_trajectory(
 
         fidelity = market_fidelity[index]
 
+        # Safety fallback: Extract real component if fidelity is a complex number
+        fidelity_scalar = float(fidelity.real) if hasattr(fidelity, 'real') else float(fidelity)
+
         noise = np.random.normal(
             0,
             1,
@@ -172,7 +201,7 @@ def process_quantum_trajectory(
 
         price = (
             base_price
-            * (1 + fidelity * 0.1)
+            * (1 + fidelity_scalar * 0.1)
             + noise
         )
 
@@ -190,7 +219,7 @@ def process_quantum_trajectory(
             "close": float(price),
             "volume": float(
                 10000
-                + fidelity * 5000
+                + fidelity_scalar * 5000
                 + np.random.randint(1000)
             ),
         })
