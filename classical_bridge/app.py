@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 import httpx
 import os
 
@@ -22,11 +22,27 @@ WORKER_URL = os.getenv(
     "http://localhost:8001"
 )
 
-
 class SimulationConfig(BaseModel):
-    num_assets: int = 4
-    shock_intensity: float = 0.5
-    time_steps: int = 50
+    num_assets: int = Field(
+        default=4,
+        gt=0,
+        le=100,
+        description="Number of assets"
+    )
+
+    shock_intensity: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="Shock intensity"
+    )
+
+    time_steps: int = Field(
+        default=50,
+        gt=1,
+        le=10000,
+        description="Simulation time steps"
+    )
 
 
 @app.post("/simulate")
