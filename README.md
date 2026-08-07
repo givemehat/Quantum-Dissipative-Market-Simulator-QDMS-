@@ -9,7 +9,7 @@ Traditional financial simulators treat markets like a collection of classical pa
 **The Quantum Paradigm:** This project models the stock market as an **Open Quantum System**.
 - **Assets and Traders** are modeled as a lattice of interacting quantum states (sub-systems).
 - **Market Liquidity and Sentiments** act as the surrounding external reservoir/bath.
-- **Flash Crashes and Panic Selling** are simulated as *Quantum Dissipation and Decoherence*—where energy (capital) rapidly leaks out of the system into the bath, causing a structural collapse of system fidelity (market stability).
+- **Flash Crashes and Panic Selling** are simulated as *Quantum Dissipation and Decoherence where energy (capital) rapidly leaks out of the system into the bath, causing a structural collapse of system fidelity (market stability).
 
 ## 🛠️ Core Architecture & Components
 
