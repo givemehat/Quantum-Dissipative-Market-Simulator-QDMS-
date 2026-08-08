@@ -1,32 +1,25 @@
-name: Auto Contribution
-
+name: Auto Commit
 on:
   schedule:
-    # Runs at 12:00 PM UTC every day
-    - cron: '0 12 * * *'
-  # Allows manual triggering from the GitHub Actions tab
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  auto-commit:
+  commit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update Contribution File
+      - name: Update contribution file
         run: |
-          echo "Last auto contribution: $(date)" > contribution.txt
-
-      - name: Commit and Push Changes
+          echo "$(date) - automated commit" >> contribution.txt
+      - name: Commit and push changes
         run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add contribution.txt
-          git commit -m "chore: auto daily contribution to maintain graph [skip ci]" || echo "No changes to commit"
-          git push origin HEAD:${GITHUB_REF}
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: auto update contribution"
+          git push
