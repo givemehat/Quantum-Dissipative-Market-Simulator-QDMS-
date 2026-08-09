@@ -1,5 +1,9 @@
 # Quantum-Dissipative Market Simulator (QDMS)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+
+
+
 **Simulating Financial Liquidity Cascades and Shock Propagation via Open Quantum System Dynamics**
 
 ## 💡 The Big Idea
