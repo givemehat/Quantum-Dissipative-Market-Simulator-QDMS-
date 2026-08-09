@@ -12,6 +12,7 @@ from qutip import (
 # Market Hamiltonian Builder
 # =========================================================
 
+
 def build_market_hamiltonian(
     num_assets: int,
     coupling_matrix: np.ndarray,
@@ -44,8 +45,6 @@ def build_market_hamiltonian(
             z_ops[i] = sigmaz()
             z_ops[j] = sigmaz()
 
-            H -= (
-                coupling_matrix[i, j] / 2
-            ) * tensor(z_ops)
+            H -= (coupling_matrix[i, j] / 2) * tensor(z_ops)
 
     return H

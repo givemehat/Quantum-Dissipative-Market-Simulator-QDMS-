@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel,Field
+from pydantic import BaseModel, Field
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
@@ -10,7 +10,7 @@ import time
 
 app = FastAPI(
     title="QDMS Classical Bridge",
-    description="Gateway for Quantum-Dissipative Market Simulator"
+    description="Gateway for Quantum-Dissipative Market Simulator",
 )
 
 app.add_middleware(
@@ -21,31 +21,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-WORKER_URL = os.getenv(
-    "WORKER_URL",
-    "http://localhost:8001"
-)
+WORKER_URL = os.getenv("WORKER_URL", "http://localhost:8001")
+
 
 class SimulationConfig(BaseModel):
-    num_assets: int = Field(
-        default=4,
-        gt=0,
-        le=100,
-        description="Number of assets"
-    )
+    num_assets: int = Field(default=4, gt=0, le=100, description="Number of assets")
 
     shock_intensity: float = Field(
-        default=0.5,
-        ge=0.0,
-        le=1.0,
-        description="Shock intensity"
+        default=0.5, ge=0.0, le=1.0, description="Shock intensity"
     )
 
     time_steps: int = Field(
-        default=50,
-        gt=1,
-        le=10000,
-        description="Simulation time steps"
+        default=50, gt=1, le=10000, description="Simulation time steps"
     )
 
 
@@ -53,10 +40,11 @@ class SimulationConfig(BaseModel):
 # 🛡️ GLOBAL ERROR HANDLING MIDDLEWARES
 # =========================================================
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """
-    Intercepts Pydantic validation failures globally and returns 
+    Intercepts Pydantic validation failures globally and returns
     structured JSON layout instead of collapsing raw streams.
     """
     return JSONResponse(
@@ -65,9 +53,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "status": "error",
             "error_type": "ValidationError",
             "message": "The request payload parameters are invalid or out of bounds.",
-            "details": exc.errors()
-        }
+            "details": exc.errors(),
+        },
     )
+
 
 @app.exception_handler(Exception)
 async def universal_generic_exception_handler(request: Request, exc: Exception):
@@ -80,14 +69,15 @@ async def universal_generic_exception_handler(request: Request, exc: Exception):
             "status": "error",
             "error_type": "InternalServerError",
             "message": "An unhandled runtime error occurred inside the gateway layer.",
-            "details": str(exc)
-        }
+            "details": str(exc),
+        },
     )
 
 
 # =========================================================
 # 🔍 HEALTH CHECK ENDPOINT (#4)
 # =========================================================
+
 
 @app.get("/health")
 async def health_check():
@@ -97,7 +87,7 @@ async def health_check():
     """
     worker_status = "disconnected"
     simulation_engine = "stopped"
-    
+
     try:
         async with httpx.AsyncClient(timeout=3.0) as client:
             response = await client.get(f"{WORKER_URL}/status")
@@ -115,7 +105,7 @@ async def health_check():
         "status": "healthy",
         "simulation_engine": simulation_engine,
         "worker": worker_status,
-        "timestamp": float(time.time())
+        "timestamp": float(time.time()),
     }
 
 
@@ -123,29 +113,25 @@ async def health_check():
 # Simulation Endpoint
 # =========================================================
 
+
 @app.post("/simulate")
-async def run_simulation(
-    config: SimulationConfig
-):
+async def run_simulation(config: SimulationConfig):
     try:
-        async with httpx.AsyncClient(
-            timeout=60
-        ) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
 
             response = await client.post(
-                f"{WORKER_URL}/process_simulation",
-                json=config.model_dump()
+                f"{WORKER_URL}/process_simulation", json=config.model_dump()
             )
 
             response.raise_for_status()
 
-# 🛡️ Safeguard: Safely extract parsed JSON from the worker
+        # 🛡️ Safeguard: Safely extract parsed JSON from the worker
         worker_result = response.json()
 
         return {
             "status": "Simulation completed",
             "config": config.model_dump(),
-            "result": worker_result
+            "result": worker_result,
         }
 
     except httpx.HTTPStatusError as error:
@@ -154,8 +140,8 @@ async def run_simulation(
             detail={
                 "status": "error",
                 "message": f"Execution worker rejected simulation schema parameters.",
-                "worker_error": error.response.text
-            }
+                "worker_error": error.response.text,
+            },
         )
     except httpx.RequestError as error:
         raise HTTPException(
@@ -163,8 +149,8 @@ async def run_simulation(
             detail={
                 "status": "error",
                 "message": f"Unable to reach the core background execution cluster.",
-                "details": str(error)
-            }
+                "details": str(error),
+            },
         )
 
 
@@ -176,8 +162,4 @@ async def get_status():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000
-    )
+    uvicorn.run(app, host="0.0.0.0", port=8000)

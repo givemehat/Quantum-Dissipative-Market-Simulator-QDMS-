@@ -10,13 +10,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 # Enable q_engine imports
-sys.path.append(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.abspath(__file__)
-        )
-    )
-)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from q_engine.hamiltonians import (
     build_market_hamiltonian,
@@ -31,9 +25,8 @@ from q_engine.Lindblad_solver import (
     solve_lindblad_master_equation,
 )
 
-app = FastAPI(
-    title="QDMS Processing Worker"
-)
+app = FastAPI(title="QDMS Processing Worker")
+
 
 # =========================================================
 # 🚀 CUSTOM ENCODER FIX FOR QUANTUM COMPLEX NUMBERS
@@ -43,12 +36,13 @@ class QuantumDataEncoder(json.JSONEncoder):
     Custom JSON Encoder to safely intercept and decompose complex algebraic structures
     (complex128, native complex) into standard JSON-compliant formats.
     """
+
     def default(self, obj):
         if isinstance(obj, (complex, np.complex128, np.complex64)):
             return {
                 "real": float(obj.real),
                 "imag": float(obj.imag),
-                "magnitude": float(abs(obj))
+                "magnitude": float(abs(obj)),
             }
         if isinstance(obj, np.ndarray):
             return obj.tolist()
@@ -58,6 +52,7 @@ class QuantumDataEncoder(json.JSONEncoder):
 # =========================================================
 # Request Model
 # =========================================================
+
 
 class WorkerConfig(BaseModel):
     num_assets: int
@@ -98,19 +93,16 @@ xgb_model.fit(dummy_X, dummy_y)
 # Simulation Endpoint
 # =========================================================
 
+
 @app.post("/process_simulation")
-def run_simulation_task(
-    config: WorkerConfig
-):
+def run_simulation_task(config: WorkerConfig):
     # Coupling Matrix
     J_matrix = np.random.rand(
         config.num_assets,
         config.num_assets,
     )
 
-    J_matrix = (
-        J_matrix + J_matrix.T
-    ) / 2
+    J_matrix = (J_matrix + J_matrix.T) / 2
 
     np.fill_diagonal(
         J_matrix,
@@ -140,13 +132,11 @@ def run_simulation_task(
         config.time_steps,
     )
 
-    expectations = (
-        solve_lindblad_master_equation(
-            H,
-            rho_0,
-            c_ops,
-            times,
-        )
+    expectations = solve_lindblad_master_equation(
+        H,
+        rho_0,
+        c_ops,
+        times,
     )
 
     # Classical Bridge
@@ -156,17 +146,15 @@ def run_simulation_task(
     )
 
     # Hybrid ML Prediction
-    regime = hybrid_ml_predict(
-        ohlcv_data
-    )
+    regime = hybrid_ml_predict(ohlcv_data)
 
-    # 🛡️ SAFEGUARD IMPLEMENTATION: Render data through our custom encoder 
+    # 🛡️ SAFEGUARD IMPLEMENTATION: Render data through our custom encoder
     response_payload = {
         "status": "completed",
         "regime_prediction": regime,
         "ohlcv_data": ohlcv_data,
     }
-    
+
     encoded_json_string = json.dumps(response_payload, cls=QuantumDataEncoder)
     return JSONResponse(content=json.loads(encoded_json_string))
 
@@ -174,6 +162,7 @@ def run_simulation_task(
 # =========================================================
 # Quantum → OHLCV Conversion
 # =========================================================
+
 
 def process_quantum_trajectory(
     expectations: list,
@@ -192,37 +181,29 @@ def process_quantum_trajectory(
         fidelity = market_fidelity[index]
 
         # Safety fallback: Extract real component if fidelity is a complex number
-        fidelity_scalar = float(fidelity.real) if hasattr(fidelity, 'real') else float(fidelity)
+        fidelity_scalar = (
+            float(fidelity.real) if hasattr(fidelity, "real") else float(fidelity)
+        )
 
         noise = np.random.normal(
             0,
             1,
         )
 
-        price = (
-            base_price
-            * (1 + fidelity_scalar * 0.1)
-            + noise
-        )
+        price = base_price * (1 + fidelity_scalar * 0.1) + noise
 
-        ohlcv_data.append({
-            "time": float(current_time),
-            "open": float(
-                price - np.random.rand()
-            ),
-            "high": float(
-                price + np.random.rand() * 2
-            ),
-            "low": float(
-                price - np.random.rand() * 2
-            ),
-            "close": float(price),
-            "volume": float(
-                10000
-                + fidelity_scalar * 5000
-                + np.random.randint(1000)
-            ),
-        })
+        ohlcv_data.append(
+            {
+                "time": float(current_time),
+                "open": float(price - np.random.rand()),
+                "high": float(price + np.random.rand() * 2),
+                "low": float(price - np.random.rand() * 2),
+                "close": float(price),
+                "volume": float(
+                    10000 + fidelity_scalar * 5000 + np.random.randint(1000)
+                ),
+            }
+        )
 
     return ohlcv_data
 
@@ -231,9 +212,8 @@ def process_quantum_trajectory(
 # Hybrid ML Prediction
 # =========================================================
 
-def hybrid_ml_predict(
-    ohlcv_data: list
-):
+
+def hybrid_ml_predict(ohlcv_data: list):
     df = pd.DataFrame(ohlcv_data)
 
     features = df[
@@ -246,15 +226,9 @@ def hybrid_ml_predict(
         ]
     ].iloc[-1:]
 
-    prediction = xgb_model.predict(
-        features
-    )[0]
+    prediction = xgb_model.predict(features)[0]
 
-    return (
-        "Elevated Crash Phase Predicted"
-        if prediction == 1
-        else "Stable Bull Market"
-    )
+    return "Elevated Crash Phase Predicted" if prediction == 1 else "Stable Bull Market"
 
 
 @app.get("/status")
