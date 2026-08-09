@@ -1,12 +1,9 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
- "nsoc-contribution"
 from pydantic import BaseModel,Field
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
-
-main
 import httpx
 import os
 import time
